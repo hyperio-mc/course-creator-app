@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
-import { serveStatic } from 'hono/bun'
+import { serve } from '@hono/node-server'
 
 // Routes
 import courses from './routes/courses'
@@ -22,8 +22,7 @@ app.route('/api/export', exportCourse)
 // Health check
 app.get('/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOString() }))
 
-// Static frontend (when built)
-app.use('/*', serveStatic({ root: './frontend/dist' }))
+// SPA fallback
 app.get('*', (c) => c.html(`<!DOCTYPE html>
 <html>
 <head><title>Course Creator</title></head>
@@ -35,9 +34,9 @@ app.get('*', (c) => c.html(`<!DOCTYPE html>
 
 const port = process.env.PORT ? parseInt(process.env.PORT) : 3001
 
-console.log(`Course Creator API running on port ${port}`)
+serve({
+  fetch: app.fetch,
+  port
+})
 
-export default {
-  port,
-  fetch: app.fetch
-}
+console.log(`Course Creator API running on port ${port}`)
