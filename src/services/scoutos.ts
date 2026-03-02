@@ -122,14 +122,36 @@ Output ONLY the JSON object. No other text.`
 }
 
 function parseCourseJson(content: string, videoUrl: string): { steps: Course['steps']; resources: Course['resources'] } {
-  // Extract JSON from response (in case there's extra text)
-  const jsonMatch = content.match(/\{[\s\S]*\}/)
-  if (!jsonMatch) {
-    throw new Error('No valid JSON found in response')
+  console.log('Raw response content:', content)
+  
+  // Try multiple extraction methods
+  let jsonStr = ''
+  
+  // Method 1: Extract from markdown code blocks
+  const codeBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/)
+  if (codeBlockMatch) {
+    jsonStr = codeBlockMatch[1].trim()
+  }
+  
+  // Method 2: Extract JSON object directly
+  if (!jsonStr) {
+    const jsonMatch = content.match(/\{[\s\S]*\}/)
+    if (jsonMatch) {
+      jsonStr = jsonMatch[0]
+    }
+  }
+  
+  // Method 3: Try the whole content
+  if (!jsonStr) {
+    jsonStr = content.trim()
+  }
+  
+  if (!jsonStr) {
+    throw new Error('No valid JSON found in response - empty content')
   }
   
   try {
-    const parsed = JSON.parse(jsonMatch[0])
+    const parsed = JSON.parse(jsonStr)
     
     // Validate and transform steps
     const steps: Course['steps'] = (parsed.steps || []).map((step: any, index: number) => ({
