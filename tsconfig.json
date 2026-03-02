@@ -6,7 +6,7 @@
     "lib": ["ES2022", "DOM"],
     "strict": false,
     "esModuleInterop": true,
-    "skipDefaultLibCheck": true,
+    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
