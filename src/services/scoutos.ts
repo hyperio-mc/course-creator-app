@@ -47,17 +47,22 @@ Output valid JSON only. No markdown, no explanation, just the JSON object.`
 
   const fullPrompt = `${systemPrompt}\n\n---\n\n${prompt}`
 
+  // Debug: log what we're sending
+  const payload = {
+    messages: [
+      { content: fullPrompt }
+    ]
+  }
+  console.log('ScoutOS request payload:', JSON.stringify(payload, null, 2))
+  console.log('content type:', typeof fullPrompt)
+  
   const response = await fetch(`https://api.scoutos.com/world/${SCOUTOS_AGENT_ID}/_interact_sync`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${SCOUTOS_API_KEY}`,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({
-      messages: [
-        { content: fullPrompt }
-      ]
-    })
+    body: JSON.stringify(payload)
   })
 
   if (!response.ok) {
