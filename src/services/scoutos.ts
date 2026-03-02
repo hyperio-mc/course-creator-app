@@ -131,7 +131,7 @@ function parseCourseJson(content: string, videoUrl: string): { steps: Course['st
     const parsed = JSON.parse(jsonMatch[0])
     
     // Validate and transform steps
-    const steps: Course['steps'] = (parsed.steps || []).map((step: { title?: string }, index: number) => ({
+    const steps: Course['steps'] = (parsed.steps || []).map((step: any, index: number) => ({
       id: `step-${index + 1}`,
       title: step.title || `Step ${index + 1}`,
       videoUrl,

@@ -8,9 +8,7 @@ let db: ReturnType<typeof open> | null = null
 export function getDB() {
   if (!db) {
     db = open({
-      path: LMDB_PATH,
-      any: true, // Allow any key format
-      dupSort: true
+      path: LMDB_PATH
     })
   }
   return db

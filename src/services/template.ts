@@ -259,4 +259,4 @@ const localStorageShim = typeof localStorage !== 'undefined' ? localStorage : {
 }
 
 // Export for use
-export { generateHtml, extractVideoId, parseTimestamp }
+export { extractVideoId, parseTimestamp }
