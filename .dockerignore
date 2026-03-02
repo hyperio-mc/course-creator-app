@@ -1,0 +1,35 @@
+# Dependencies
+node_modules
+
+# Build outputs
+.next
+out
+dist
+
+# Archive files
+*.zip
+
+# Development files
+.git
+.gitignore
+*.md
+docs/
+tests/
+scripts/
+
+# Environment files
+.env*
+!.env.example
+
+# IDE files
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+npm-debug.log*
