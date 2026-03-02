@@ -2,25 +2,24 @@ import type { Course } from '../types/course'
 
 const SCOUTOS_API_KEY = process.env.SCOUTOS_API_KEY || process.env.SCOUT_SECRET_KEY
 const SCOUTOS_WORKSPACE_ID = process.env.SCOUTOS_WORKSPACE_ID || 'cmlo0kbsp19t00qs65zsgougw'
+// Default to Technical Sales Support agent - can be overridden via env
+const SCOUTOS_AGENT_ID = process.env.SCOUTOS_AGENT_ID || 'cmlo0kd7p1wz1oos6z8hmd7hg'
 
-interface ScoutOSMessage {
-  role: 'user' | 'assistant' | 'system'
-  content: string
-}
-
-interface ScoutOSResponse {
-  id: string
-  choices: Array<{
-    message: {
-      role: 'assistant'
-      content: string
-    }
-    finish_reason: string
-  }>
+interface ScoutOSInteractResponse {
+  id?: string
+  content?: string
+  text?: string
+  message?: string
+  response?: string
+  output?: string
+  result?: string
+  // Agent responses can come in various formats
+  [key: string]: any
 }
 
 /**
  * Generate a course from a video transcript using ScoutOS Agent
+ * Uses the ScoutOS Agent API: POST /world/{agent_id}/_interact_sync
  */
 export async function generateCourseFromTranscript(
   videoUrl: string,
@@ -33,19 +32,18 @@ export async function generateCourseFromTranscript(
 
   const prompt = buildCoursePrompt(videoUrl, transcript, meta)
   
-  const response = await fetch('https://scoutos.com/api/v1/chat/completions', {
+  // Use ScoutOS Agent API
+  const response = await fetch(`https://api.scoutos.com/world/${SCOUTOS_AGENT_ID}/_interact_sync`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${SCOUTOS_API_KEY}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 8192,
       messages: [
         {
-          role: 'system',
-          content: `You are an expert course designer. You create structured, interactive video courses from transcripts.
+          content: {
+            text: `You are an expert course designer. You create structured, interactive video courses from transcripts.
 
 Your courses are:
 - Clear and actionable
@@ -54,11 +52,12 @@ Your courses are:
 - Checkpoints help learners track progress
 - Timestamps correspond to video sections
 
-Output valid JSON only. No markdown, no explanation, just the JSON object.`
-        },
-        {
-          role: 'user',
-          content: prompt
+Output valid JSON only. No markdown, no explanation, just the JSON object.
+
+---
+
+${prompt}`
+          }
         }
       ]
     })
@@ -69,8 +68,11 @@ Output valid JSON only. No markdown, no explanation, just the JSON object.`
     throw new Error(`ScoutOS API error: ${response.status} - ${error}`)
   }
 
-  const data = await response.json() as ScoutOSResponse
-  const content = data.choices[0]?.message?.content || ''
+  const data = await response.json() as ScoutOSInteractResponse
+  
+  // Extract content from various possible response formats
+  const content = data.content || data.text || data.message || data.response || 
+                  data.output || data.result || JSON.stringify(data)
   
   return parseCourseJson(content, videoUrl)
 }
