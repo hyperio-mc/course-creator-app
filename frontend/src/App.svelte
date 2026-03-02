@@ -1,4 +1,5 @@
 <script>
+  import { onMount } from 'svelte'
   import CourseEditor from './components/CourseEditor.svelte'
   import CourseList from './components/CourseList.svelte'
   import { courseStore } from './stores/course.js'
@@ -6,15 +7,13 @@
   let view = $state('list') // 'list' | 'create' | 'edit'
   let loading = $state(true)
 
-  // Use $effect for side effects like loading data
-  $effect(() => {
-    if (loading) {
-      courseStore.loadCourses().then(() => {
-        loading = false
-      }).catch(err => {
-        console.error('Failed to load courses:', err)
-        loading = false
-      })
+  onMount(async () => {
+    try {
+      await courseStore.loadCourses()
+    } catch (err) {
+      console.error('Failed to load courses:', err)
+    } finally {
+      loading = false
     }
   })
 
