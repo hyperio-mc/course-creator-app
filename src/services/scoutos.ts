@@ -47,16 +47,22 @@ Output valid JSON only. No markdown, no explanation, just the JSON object.`
 
   const fullPrompt = `${systemPrompt}\n\n---\n\n${prompt}`
 
-  // ScoutOS Agent API expects messages array with content as plain strings
-  // Format: { messages: [{ role: "user", content: "actual string here" }] }
-  const payload = {
-    messages: [
-      { role: "user", content: fullPrompt }
-    ]
-  }
-  console.log('ScoutOS request payload:', JSON.stringify({ ...payload, messages: [{ role: 'user', content: '...' }] }))
+  // ScoutOS Agent API - try simple input format
+  // Based on error analysis, the API expects a simpler format
+  // Try: { "input": "prompt string" } or { "message": "prompt string" }
   
-  const response = await fetch(`https://api.scoutos.com/world/${SCOUTOS_AGENT_ID}/_interact_sync`, {
+  // First, try the simple input format
+  let payload: any
+  let apiUrl = `https://api.scoutos.com/world/${SCOUTOS_AGENT_ID}/_interact_sync`
+  
+  // Try the run endpoint with simple input format
+  payload = {
+    input: fullPrompt
+  }
+  
+  console.log('ScoutOS request:', { url: apiUrl, payloadSize: JSON.stringify(payload).length })
+  
+  let response = await fetch(apiUrl, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${SCOUTOS_API_KEY}`,
