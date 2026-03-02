@@ -3,7 +3,7 @@ WORKDIR /app
 
 # Install backend dependencies
 FROM base AS backend-deps
-COPY package.json bun.lockb package-lock.json ./
+COPY package.json bun.lockb* package-lock.json* ./
 RUN bun install --frozen-lockfile
 
 # Install frontend dependencies and build
