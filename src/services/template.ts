@@ -208,7 +208,7 @@ function getVideoEmbed(videoId: string, start?: string, end?: string): string {
   const params = new URLSearchParams({
     start: String(startSeconds),
     enablejsapi: '1',
-    origin: window.location.origin
+    origin: '*' // Allow embeds from any origin (server-side safe)
   })
   
   if (end) {

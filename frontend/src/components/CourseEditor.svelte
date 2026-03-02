@@ -4,16 +4,19 @@
   const dispatch = createEventDispatcher()
 
   // Use $props() in Svelte 5 runes mode
-  let { course = null } = $props()
+  let { course: courseProp } = $props()
 
-  // Initialize course if null
+  // Create local reactive state with default if prop is null
+  let course = $state(courseProp ?? {
+    meta: { title: '', description: '', author: '', estimatedTime: '15 minutes', difficulty: 'beginner' },
+    steps: [],
+    resources: []
+  })
+
+  // Sync when prop changes
   $effect(() => {
-    if (!course) {
-      course = {
-        meta: { title: '', description: '', author: '', estimatedTime: '15 minutes', difficulty: 'beginner' },
-        steps: [],
-        resources: []
-      }
+    if (courseProp && courseProp.id) {
+      course = courseProp
     }
   })
 
