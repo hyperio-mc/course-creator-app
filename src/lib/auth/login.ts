@@ -64,7 +64,7 @@ export async function login(email: string, password: string): Promise<LoginResul
     }
 
     // Create session
-    const sessionResult = createSession(user.id);
+    const sessionResult = await createSession(user.id);
     if (!sessionResult.ok) {
       return { ok: false, error: 'Failed to create session' };
     }

@@ -106,7 +106,7 @@ export async function signup(email: string, password: string): Promise<SignupRes
     await dataApi.createDocument('users', normalizedEmail, user);
 
     // Create session
-    const sessionResult = createSession(userId);
+    const sessionResult = await createSession(userId);
     if (!sessionResult.ok) {
       return { ok: false, error: 'Failed to create session' };
     }

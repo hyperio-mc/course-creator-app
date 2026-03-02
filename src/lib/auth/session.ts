@@ -33,13 +33,13 @@ export interface Session {
  * @returns Result with session data or error
  *
  * @example
- * const result = createSession('user-123');
+ * const result = await createSession('user-123');
  * if (result.ok) {
  *   const token = result.data.token;
  *   // Store token in localStorage/cookie
  * }
  */
-export function createSession(userId: string): { ok: true; data: Session } | { ok: false; error: string } {
+export async function createSession(userId: string): Promise<{ ok: true; data: Session } | { ok: false; error: string }> {
   try {
     // Generate secure token
     const token = generateToken();
@@ -55,9 +55,13 @@ export function createSession(userId: string): { ok: true; data: Session } | { o
       expiresAt,
     };
 
-    // We would store this in hyper-micro, but for now return success
-    // Storage happens asynchronously
-    storeSessionAsync(session);
+    // Store session in database (await for completion)
+    const key = getSessionKey(session.token);
+    await dataApi.createDocument('sessions', key, {
+      userId: session.userId,
+      createdAt: session.createdAt,
+      expiresAt: session.expiresAt,
+    });
 
     return { ok: true, data: session };
   } catch (error) {
@@ -114,17 +118,22 @@ export async function validateSession(
  * @example
  * revokeSession(token); // logout
  */
-export function revokeSession(token: string): { ok: true } | { ok: false; error: string } {
-  // Delete from database asynchronously
-  deleteSessionAsync(token);
-  return { ok: true };
+export async function revokeSession(token: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  try {
+    const key = getSessionKey(token);
+    await dataApi.deleteDocument('sessions', key);
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error: String(error) };
+  }
 }
 
 /**
  * Get the database key for a session
+ * Returns just the token since we're already specifying 'sessions' as the db
  */
 export function getSessionKey(token: string): string {
-  return `sessions/${token}`;
+  return token;
 }
 
 /**
@@ -135,33 +144,4 @@ function generateToken(): string {
   const uuid = crypto.randomUUID();
   const timestamp = Date.now().toString(36);
   return `${timestamp}-${uuid}`;
-}
-
-/**
- * Store session in database asynchronously
- * Non-blocking - errors logged but not thrown
- */
-async function storeSessionAsync(session: Session): Promise<void> {
-  try {
-    const key = getSessionKey(session.token);
-    await dataApi.createDocument('sessions', key, {
-      userId: session.userId,
-      createdAt: session.createdAt,
-      expiresAt: session.expiresAt,
-    });
-  } catch (error) {
-    console.error('Failed to store session:', error);
-  }
-}
-
-/**
- * Delete session from database asynchronously
- */
-async function deleteSessionAsync(token: string): Promise<void> {
-  try {
-    const key = getSessionKey(token);
-    await dataApi.deleteDocument('sessions', key);
-  } catch (error) {
-    console.error('Failed to delete session:', error);
-  }
 }

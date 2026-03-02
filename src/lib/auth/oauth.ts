@@ -183,7 +183,7 @@ export async function handleGoogleOAuthCallback(
       });
     }
 
-    const sessionResult = createSession(userId);
+    const sessionResult = await createSession(userId);
     if (!sessionResult.ok) {
       return { ok: false, error: 'Failed to create session' };
     }
