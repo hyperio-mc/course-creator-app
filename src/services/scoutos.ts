@@ -148,6 +148,42 @@ Requirements:
 Output ONLY the JSON object. No other text.`
 }
 
+/**
+ * Attempt to fix common JSON formatting issues from AI responses
+ */
+function fixMalformedJson(jsonStr: string): string {
+  let fixed = jsonStr
+  
+  // Remove trailing commas before } or ]
+  fixed = fixed.replace(/,\s*([}\]])/g, '$1')
+  
+  // Fix missing commas between objects in arrays
+  fixed = fixed.replace(/\}\s*\{/g, '},{')
+  
+  // Fix missing commas between array items
+  fixed = fixed.replace(/\]\s*\[/g, '],[')
+  
+  // Fix unterminated strings (common with AI)
+  // Look for strings that don't have matching quotes
+  fixed = fixed.replace(/"([^"]*?)(\n|"([^"]*?))"/g, '"$1$3"')
+  
+  // Balance braces
+  const openBraces = (fixed.match(/\{/g) || []).length
+  const closeBraces = (fixed.match(/\}/g) || []).length
+  if (openBraces > closeBraces) {
+    fixed += '}'.repeat(openBraces - closeBraces)
+  }
+  
+  // Balance brackets
+  const openBrackets = (fixed.match(/\[/g) || []).length
+  const closeBrackets = (fixed.match(/\]/g) || []).length
+  if (openBrackets > closeBrackets) {
+    fixed += ']'.repeat(openBrackets - closeBrackets)
+  }
+  
+  return fixed
+}
+
 function parseCourseJson(content: string, videoUrl: string): { steps: Course['steps']; resources: Course['resources'] } {
   console.log('Raw response content:', content)
   
@@ -176,6 +212,9 @@ function parseCourseJson(content: string, videoUrl: string): { steps: Course['st
   if (!jsonStr) {
     throw new Error('No valid JSON found in response - empty content')
   }
+  
+  // Try to fix common AI JSON issues
+  jsonStr = fixMalformedJson(jsonStr)
   
   try {
     const parsed = JSON.parse(jsonStr)
