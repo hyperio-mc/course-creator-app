@@ -85,8 +85,17 @@ Output valid JSON only. No markdown, no explanation, just the JSON object.`
   // The assistant's response is the last message
   let content: string
   if (Array.isArray(data)) {
+    console.log('ScoutOS response is array with', data.length, 'items')
     const assistantMsg = data.find((m: any) => m.role === 'assistant')
-    content = assistantMsg?.content || data[data.length - 1]?.content || ''
+    if (assistantMsg?.content) {
+      content = assistantMsg.content
+    } else {
+      // Concatenate all content from messages with content
+      const contentParts = data
+        .filter((m: any) => m.content && typeof m.content === 'string')
+        .map((m: any) => m.content)
+      content = contentParts.join('\n')
+    }
   } else if (typeof data === 'object' && data !== null) {
     // Fallback for other response formats
     content = (data as any).content || (data as any).text || (data as any).message || 
@@ -98,7 +107,7 @@ Output valid JSON only. No markdown, no explanation, just the JSON object.`
   if (!content) {
     throw new Error('No content received from ScoutOS')
   }
-  console.log('Extracted content:', content)
+  console.log('Extracted content length:', content.length, 'First 200 chars:', content.substring(0, 200))
   
   return parseCourseJson(content, videoUrl)
 }
