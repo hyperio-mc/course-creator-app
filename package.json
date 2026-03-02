@@ -1,0 +1,26 @@
+{
+  "name": "course-creator-app",
+  "version": "1.0.0",
+  "description": "Web app for creating interactive video courses from transcripts",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "NODE_ENV=production tsx src/index.ts",
+    "frontend:dev": "cd frontend && npm run dev",
+    "frontend:build": "cd frontend && npm run build",
+    "db:init": "tsx src/scripts/init-db.ts"
+  },
+  "dependencies": {
+    "hono": "^4.6.0",
+    "lmdb": "^3.2.0",
+    "uuid": "^10.0.0",
+    "node-html-parser": "^6.1.13"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/uuid": "^10.0.0",
+    "typescript": "^5.7.0",
+    "tsx": "^4.19.0"
+  }
+}
