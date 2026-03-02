@@ -1,0 +1,11 @@
+var R=require("../../chunks/ssr/[turbopack]_runtime.js")("server/app/_global-error/page.js")
+R.c("server/chunks/ssr/[root-of-the-server]__27308734._.js")
+R.c("server/chunks/ssr/course-creator-app_c31e2e51._.js")
+R.c("server/chunks/ssr/1b220_next_dist_79d70ab0._.js")
+R.c("server/chunks/ssr/[root-of-the-server]__513af581._.js")
+R.c("server/chunks/ssr/[root-of-the-server]__7f1b35a5._.js")
+R.c("server/chunks/ssr/1b220_next_dist_efac6759._.js")
+R.c("server/chunks/ssr/course-creator-app_src_app_58832c57._.js")
+R.c("server/chunks/ssr/course-creator-app__next-internal_server_app__global-error_page_actions_a1cde46f.js")
+R.m(22045)
+module.exports=R.m(22045).exports

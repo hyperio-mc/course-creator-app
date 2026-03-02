@@ -1,0 +1,19 @@
+1:"$Sreact.fragment"
+2:I[7492,["/_next/static/chunks/ea83e50f9f5235ef.js"],"Providers"]
+3:I[60002,["/_next/static/chunks/878c844eed831dd0.js","/_next/static/chunks/b7568443fe64053e.js"],"default"]
+4:I[61997,["/_next/static/chunks/878c844eed831dd0.js","/_next/static/chunks/b7568443fe64053e.js"],"default"]
+5:I[29187,["/_next/static/chunks/ea83e50f9f5235ef.js","/_next/static/chunks/5992c51c22facc35.js"],"default"]
+6:I[84806,["/_next/static/chunks/878c844eed831dd0.js","/_next/static/chunks/b7568443fe64053e.js"],"ClientPageRoot"]
+9:I[44653,["/_next/static/chunks/878c844eed831dd0.js","/_next/static/chunks/b7568443fe64053e.js"],"OutletBoundary"]
+a:"$Sreact.suspense"
+c:I[44653,["/_next/static/chunks/878c844eed831dd0.js","/_next/static/chunks/b7568443fe64053e.js"],"ViewportBoundary"]
+e:I[44653,["/_next/static/chunks/878c844eed831dd0.js","/_next/static/chunks/b7568443fe64053e.js"],"MetadataBoundary"]
+10:I[28087,["/_next/static/chunks/878c844eed831dd0.js","/_next/static/chunks/b7568443fe64053e.js"],"default"]
+:HL["/_next/static/chunks/718aff57fc6b2dee.css","style"]
+0:{"P":null,"b":"uHoUdmCBhX2DL627amTv-","c":["","_not-found",""],"q":"","i":false,"f":[[["",{"children":["/_not-found",{"children":["__PAGE__",{}]}]},"$undefined","$undefined",true],[["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/chunks/718aff57fc6b2dee.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}],["$","script","script-0",{"src":"/_next/static/chunks/ea83e50f9f5235ef.js","async":true,"nonce":"$undefined"}]],["$","html",null,{"lang":"en","children":["$","body",null,{"className":"geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__variable antialiased","children":["$","$L2",null,{"children":["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[["$","$L5",null,{}],[]],"forbidden":"$undefined","unauthorized":"$undefined"}]}]}]}]]}],{"children":[["$","$1","c",{"children":[null,["$","$L3",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":[["$","$1","c",{"children":[["$","$L6",null,{"Component":"$5","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@7","$@8"]}}],[["$","script","script-0",{"src":"/_next/static/chunks/5992c51c22facc35.js","async":true,"nonce":"$undefined"}]],["$","$L9",null,{"children":["$","$a",null,{"name":"Next.MetadataOutlet","children":"$@b"}]}]]}],{},null,false,false]},null,false,false]},null,false,false],["$","$1","h",{"children":[["$","meta",null,{"name":"robots","content":"noindex"}],["$","$Lc",null,{"children":"$Ld"}],["$","div",null,{"hidden":true,"children":["$","$Le",null,{"children":["$","$a",null,{"name":"Next.Metadata","children":"$Lf"}]}]}],["$","meta",null,{"name":"next-size-adjust","content":""}]]}],false]],"m":"$undefined","G":["$10","$undefined"],"S":true}
+7:{}
+8:"$0:f:0:1:1:children:1:children:0:props:children:0:props:serverProvidedParams:params"
+d:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
+11:I[25540,["/_next/static/chunks/878c844eed831dd0.js","/_next/static/chunks/b7568443fe64053e.js"],"IconMark"]
+b:null
+f:[["$","title","0",{"children":"Course Creator"}],["$","meta","1",{"name":"description","content":"Convert video transcripts into interactive courses"}],["$","link","2",{"rel":"icon","href":"/favicon.ico?favicon.0b3bf435.ico","sizes":"256x256","type":"image/x-icon"}],["$","$L11","3",{}]]
