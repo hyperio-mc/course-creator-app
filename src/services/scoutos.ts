@@ -158,100 +158,148 @@ Output ONLY the JSON object. No other text.`
 }
 
 /**
- * Attempt to fix common JSON formatting issues from AI responses
+ * Advanced JSON repair for malformed AI responses
+ * Handles: truncated objects, duplicate keys, malformed arrays, unterminated strings
  */
-function fixMalformedJson(jsonStr: string): string {
-  let fixed = jsonStr
+function repairJson(jsonStr: string): any {
+  console.log('Attempting JSON repair...')
   
-  // Remove trailing commas before } or ]
-  fixed = fixed.replace(/,\s*([}\]])/g, '$1')
+  // Step 1: Clean up markdown code blocks
+  let cleaned = jsonStr.replace(/```(?:json)?\s*/g, '').replace(/```\s*$/g, '')
   
-  // Fix missing commas between objects in arrays
-  fixed = fixed.replace(/\}\s*\{/g, '},{')
-  
-  // Fix missing commas between array items
-  fixed = fixed.replace(/\]\s*\[/g, '],[')
-  
-  // Fix unterminated strings (common with AI)
-  // Look for strings that don't have matching quotes
-  fixed = fixed.replace(/"([^"]*?)(\n|"([^"]*?))"/g, '"$1$3"')
-  
-  // Balance braces
-  const openBraces = (fixed.match(/\{/g) || []).length
-  const closeBraces = (fixed.match(/\}/g) || []).length
-  if (openBraces > closeBraces) {
-    fixed += '}'.repeat(openBraces - closeBraces)
+  // Step 2: Extract just the JSON object (steps and resources)
+  const jsonMatch = cleaned.match(/\{[\s\S]*"steps"[\s\S]*"resources"[\s\S]*\}/)
+  if (jsonMatch) {
+    cleaned = jsonMatch[0]
   }
   
-  // Balance brackets
-  const openBrackets = (fixed.match(/\[/g) || []).length
-  const closeBrackets = (fixed.match(/\]/g) || []).length
-  if (openBrackets > closeBrackets) {
-    fixed += ']'.repeat(openBrackets - closeBrackets)
+  // Step 3: Fix common issues
+  cleaned = cleaned
+    // Remove trailing commas
+    .replace(/,\s*([}\]])/g, '$1')
+    // Fix missing commas between array items
+    .replace(/\}\s*\{/g, '},{')
+    // Fix newlines in string values (replace with spaces)
+    .replace(/"([^"]*?)\n([^"]*?)"/g, '"$1 $2"')
+  
+  // Step 4: Try parsing with increasing repair attempts
+  try {
+    return JSON.parse(cleaned)
+  } catch (e) {
+    console.log('Initial parse failed, trying structural repair...')
   }
   
-  return fixed
-}
-
-function parseCourseJson(content: string, videoUrl: string): { steps: Course['steps']; resources: Course['resources'] } {
-  console.log('Raw response content:', content)
+  // Step 5: Extract valid step objects using regex pattern matching
+  const steps: any[] = []
+  const resources: any[] = []
   
-  // Try multiple extraction methods
-  let jsonStr = ''
-  
-  // Method 1: Extract from markdown code blocks
-  const codeBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/)
-  if (codeBlockMatch) {
-    jsonStr = codeBlockMatch[1].trim()
+  // Match step objects pattern - be very permissive
+  const stepPattern = /\{\s*"title"\s*:\s*"([^"]+)"[^}]*"videoTimestamp"\s*:\s*"([^"]*)"[^}]*"content"\s*:\s*"([^"]*)"/gi
+  let stepMatch
+  while ((stepMatch = stepPattern.exec(cleaned)) !== null) {
+    steps.push({
+      title: stepMatch[1],
+      videoTimestamp: stepMatch[2] || '0:00',
+      content: stepMatch[3]
+    })
   }
   
-  // Method 2: Extract JSON object directly
-  if (!jsonStr) {
-    const jsonMatch = content.match(/\{[\s\S]*\}/)
-    if (jsonMatch) {
-      jsonStr = jsonMatch[0]
+  // If we found steps via regex, construct valid structure
+  if (steps.length > 0) {
+    console.log(`Extracted ${steps.length} steps via pattern matching`)
+    return { steps, resources }
+  }
+  
+  // Step 6: Try to find and repair step objects individually
+  const stepBlocks = cleaned.split(/(?=\{\s*"title")/g)
+  for (const block of stepBlocks) {
+    if (!block.includes('"title"')) continue
+    
+    const titleMatch = block.match(/"title"\s*:\s*"([^"]+)"/)
+    const tsMatch = block.match(/"videoTimestamp"\s*:\s*"([^"]*)"/)
+    const endTsMatch = block.match(/"videoEndTimestamp"\s*:\s*"([^"]*)"/)
+    const contentMatch = block.match(/"content"\s*:\s*"([\s\S]*?)"(?:\s*[,}]|\s*"estimatedTime")/)
+    const timeMatch = block.match(/"estimatedTime"\s*:\s*"([^"]+)"/)
+    const labelMatch = block.match(/"label"\s*:\s*"([^"]+)"/)
+    
+    if (titleMatch) {
+      steps.push({
+        title: titleMatch[1],
+        videoTimestamp: tsMatch?.[1] || '0:00',
+        videoEndTimestamp: endTsMatch?.[1],
+        content: contentMatch?.[1]?.replace(/\\"/g, '"').replace(/\n/g, ' ') || '',
+        estimatedTime: timeMatch?.[1] || '5 minutes',
+        checkpoint: { label: labelMatch?.[1] || 'I completed this step' }
+      })
     }
   }
   
-  // Method 3: Try the whole content
-  if (!jsonStr) {
-    jsonStr = content.trim()
+  // Extract resources
+  const resourcePattern = /\{\s*"label"\s*:\s*"([^"]+)"[^}]*"url"\s*:\s*"([^"]+)"/gi
+  let resourceMatch
+  while ((resourceMatch = resourcePattern.exec(cleaned)) !== null) {
+    resources.push({
+      label: resourceMatch[1],
+      url: resourceMatch[2]
+    })
   }
   
-  if (!jsonStr) {
+  if (steps.length > 0) {
+    console.log(`Recovered ${steps.length} steps and ${resources.length} resources`)
+    return { steps, resources }
+  }
+  
+  throw new Error('Could not parse or repair JSON from AI response')
+}
+
+function parseCourseJson(content: string, videoUrl: string): { steps: Course['steps']; resources: Course['resources'] } {
+  console.log('Raw response content length:', content.length)
+  console.log('First 500 chars:', content.substring(0, 500))
+  
+  // Extract from markdown code blocks if present
+  let jsonStr = content
+  const codeBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/)
+  if (codeBlockMatch) {
+    jsonStr = codeBlockMatch[1].trim()
+    console.log('Extracted from markdown code block')
+  }
+  
+  if (!jsonStr.trim()) {
     throw new Error('No valid JSON found in response - empty content')
   }
   
-  // Try to fix common AI JSON issues
-  jsonStr = fixMalformedJson(jsonStr)
+  let parsed: any
   
+  // Try direct parse first
   try {
-    const parsed = JSON.parse(jsonStr)
-    
-    // Validate and transform steps
-    const steps: Course['steps'] = (parsed.steps || []).map((step: any, index: number) => ({
-      id: `step-${index + 1}`,
-      title: step.title || `Step ${index + 1}`,
-      videoUrl,
-      videoTimestamp: step.videoTimestamp || '0:00',
-      videoEndTimestamp: step.videoEndTimestamp,
-      content: step.content || '',
-      estimatedTime: step.estimatedTime || '5 minutes',
-      checkpoint: {
-        label: step.checkpoint?.label || 'I completed this step',
-        hint: step.checkpoint?.hint
-      }
-    }))
-    
-    const resources: Course['resources'] = (parsed.resources || []).map((r: { label?: string; url?: string }) => ({
-      label: r.label || 'Resource',
-      url: r.url || ''
-    }))
-    
-    return { steps, resources }
+    parsed = JSON.parse(jsonStr)
+    console.log('Direct JSON parse successful')
   } catch (e) {
-    throw new Error(`Failed to parse course JSON: ${e}`)
+    console.log('Direct parse failed, attempting repair:', (e as Error).message)
+    parsed = repairJson(jsonStr)
   }
+  
+  // Validate and transform steps
+  const steps: Course['steps'] = (parsed.steps || []).map((step: any, index: number) => ({
+    id: `step-${index + 1}`,
+    title: step.title || `Step ${index + 1}`,
+    videoUrl,
+    videoTimestamp: step.videoTimestamp || step.video_start || '0:00',
+    videoEndTimestamp: step.videoEndTimestamp || step.video_end,
+    content: typeof step.content === 'string' ? step.content : JSON.stringify(step.content) || '',
+    estimatedTime: step.estimatedTime || '5 minutes',
+    checkpoint: {
+      label: step.checkpoint?.label || 'I completed this step',
+      hint: step.checkpoint?.hint
+    }
+  }))
+  
+  const resources: Course['resources'] = (parsed.resources || []).map((r: { label?: string; url?: string }) => ({
+    label: r.label || 'Resource',
+    url: r.url || ''
+  }))
+  
+  return { steps, resources }
 }
 
 /**
