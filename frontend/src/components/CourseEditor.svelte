@@ -4,21 +4,8 @@
   const dispatch = createEventDispatcher()
 
   // Use $props() in Svelte 5 runes mode
-  let { course: courseProp } = $props()
-
-  // Create local reactive state with default if prop is null
-  let course = $state(courseProp ?? {
-    meta: { title: '', description: '', author: '', estimatedTime: '15 minutes', difficulty: 'beginner' },
-    steps: [],
-    resources: []
-  })
-
-  // Sync when prop changes
-  $effect(() => {
-    if (courseProp && courseProp.id) {
-      course = courseProp
-    }
-  })
+  // course must be passed from parent - parent handles null case
+  let { course } = $props()
 
   function addStep() {
     course = {

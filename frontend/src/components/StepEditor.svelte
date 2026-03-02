@@ -5,17 +5,15 @@
   // Use $props() in Svelte 5 runes mode
   let { step, index } = $props()
 
-  // Use $state for local reactive state
-  let collapsed = $state(index > 0 && !step.title)
+  // Local state for collapsed
+  let collapsed = $state(true)
 
+  // Derived value for video ID
   function extractVideoId(url) {
     if (!url) return null
     const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\s?]+)/)
     return ytMatch ? ytMatch[1] : null
   }
-
-  // Use $derived for computed values
-  let videoId = $derived(extractVideoId(step.videoUrl))
 </script>
 
 <div class="border rounded-lg overflow-hidden">
@@ -76,14 +74,15 @@
       </div>
 
       <!-- Video Preview -->
-      {#if videoId}
+      {#if extractVideoId(step.videoUrl)}
         <div class="aspect-video bg-black rounded-lg overflow-hidden">
           <iframe
-            src="https://www.youtube.com/embed/{videoId}"
+            src="https://www.youtube.com/embed/{extractVideoId(step.videoUrl)}"
             class="w-full h-full"
             frameborder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowfullscreen
+            title="Video preview"
           ></iframe>
         </div>
       {/if}
