@@ -1,7 +1,9 @@
 <script>
-  export let courses = []
   import { createEventDispatcher } from 'svelte'
   const dispatch = createEventDispatcher()
+
+  // Use $props() in Svelte 5 runes mode
+  let { courses = [] } = $props()
 
   function formatDate(date) {
     return new Date(date).toLocaleDateString('en-US', {
@@ -25,13 +27,13 @@
         <div class="flex gap-2">
           <button
             class="flex-1 px-3 py-2 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition text-sm font-medium"
-            on:click={() => dispatch('edit', course)}
+            onclick={() => dispatch('edit', course)}
           >
             Edit
           </button>
           <button
             class="px-3 py-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition text-sm font-medium"
-            on:click={() => window.open(`/api/export/${course.id}/html`, '_blank')}
+            onclick={() => window.open(`/api/export/${course.id}/html`, '_blank')}
           >
             Preview
           </button>
@@ -48,7 +50,7 @@
       <p class="text-gray-500 mb-4">Create your first course to get started</p>
       <button
         class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-        on:click={() => dispatch('create')}
+        onclick={() => dispatch('create')}
       >
         Create Course
       </button>

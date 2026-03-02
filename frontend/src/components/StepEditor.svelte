@@ -2,10 +2,11 @@
   import { createEventDispatcher } from 'svelte'
   const dispatch = createEventDispatcher()
 
-  export let step
-  export let index
+  // Use $props() in Svelte 5 runes mode
+  let { step, index } = $props()
 
-  $: collapsed = index > 0 && !step.title
+  // Use $state for local reactive state
+  let collapsed = $state(index > 0 && !step.title)
 
   function extractVideoId(url) {
     if (!url) return null
@@ -13,14 +14,15 @@
     return ytMatch ? ytMatch[1] : null
   }
 
-  $: videoId = extractVideoId(step.videoUrl)
+  // Use $derived for computed values
+  let videoId = $derived(extractVideoId(step.videoUrl))
 </script>
 
 <div class="border rounded-lg overflow-hidden">
   <!-- Header -->
   <div
     class="flex items-center justify-between p-4 bg-gray-50 cursor-pointer"
-    on:click={() => collapsed = !collapsed}
+    onclick={() => collapsed = !collapsed}
   >
     <div class="flex items-center gap-3">
       <span class="text-gray-400 text-lg font-mono">{index + 1}</span>
@@ -145,7 +147,7 @@
       <div class="flex justify-end">
         <button
           class="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition"
-          on:click={() => dispatch('remove')}
+          onclick={() => dispatch('remove')}
         >
           Remove Step
         </button>
@@ -153,12 +155,3 @@
     </div>
   {/if}
 </div>
-
-<style>
-  .line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-</style>

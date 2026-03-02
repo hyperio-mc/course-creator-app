@@ -4,8 +4,8 @@
   import CourseList from './components/CourseList.svelte'
   import { courseStore } from './stores/course.js'
 
-  let view = 'list' // 'list' | 'create' | 'edit'
-  let loading = true
+  let view = $state('list') // 'list' | 'create' | 'edit'
+  let loading = $state(true)
 
   onMount(async () => {
     await courseStore.loadCourses()
@@ -21,13 +21,13 @@
   {:else}
     <header class="bg-white shadow-sm">
       <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-gray-900 cursor-pointer" on:click={() => view = 'list'}>
+        <h1 class="text-2xl font-bold text-gray-900 cursor-pointer" onclick={() => view = 'list'}>
           📚 Course Creator
         </h1>
         <nav class="flex gap-4">
           <button
             class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-            on:click={() => { view = 'create'; courseStore.newCourse() }}
+            onclick={() => { view = 'create'; courseStore.newCourse() }}
           >
             + New Course
           </button>
@@ -39,17 +39,17 @@
       {#if view === 'list'}
         <CourseList
           courses={$courseStore.courses}
-          on:create={() => view = 'create'}
-          on:edit={(e) => { courseStore.selectCourse(e.detail); view = 'edit' }}
+          oncreate={() => view = 'create'}
+          onedit={(e) => { courseStore.selectCourse(e.detail); view = 'edit' }}
         />
       {:else}
         <CourseEditor
-          course=$courseStore.current
-          on:save={async () => {
+          course={$courseStore.current}
+          onsave={async () => {
             await courseStore.saveCourse()
             view = 'list'
           }}
-          on:cancel={() => view = 'list'}
+          oncancel={() => view = 'list'}
         />
       {/if}
     </div>

@@ -3,15 +3,19 @@
   import StepEditor from './StepEditor.svelte'
   const dispatch = createEventDispatcher()
 
-  export let course = null
+  // Use $props() in Svelte 5 runes mode
+  let { course = null } = $props()
 
-  $: if (!course) {
-    course = {
-      meta: { title: '', description: '', author: '', estimatedTime: '15 minutes', difficulty: 'beginner' },
-      steps: [],
-      resources: []
+  // Initialize course if null
+  $effect(() => {
+    if (!course) {
+      course = {
+        meta: { title: '', description: '', author: '', estimatedTime: '15 minutes', difficulty: 'beginner' },
+        steps: [],
+        resources: []
+      }
     }
-  }
+  })
 
   function addStep() {
     course = {
@@ -56,8 +60,6 @@
   }
 
   async function generateFromTranscript() {
-    // TODO: Open modal for video URL + transcript input
-    // For now, show alert
     alert('AI generation coming soon! For now, manually add steps.')
   }
 </script>
@@ -125,7 +127,7 @@
   <div class="p-6 bg-indigo-50 border-b">
     <button
       class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition flex items-center gap-2"
-      on:click={generateFromTranscript}
+      onclick={() => generateFromTranscript()}
     >
       <span>✨</span>
       <span>Generate from Transcript (AI)</span>
@@ -138,7 +140,7 @@
       <h3 class="text-lg font-semibold text-gray-900">Steps</h3>
       <button
         class="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
-        on:click={addStep}
+        onclick={() => addStep()}
       >
         + Add Step
       </button>
@@ -149,8 +151,8 @@
         <StepEditor
           {step}
           {index}
-          on:update={(e) => updateStep(index, e.detail)}
-          on:remove={() => removeStep(index)}
+          onupdate={(e) => updateStep(index, e.detail)}
+          onremove={() => removeStep(index)}
         />
       {/each}
     </div>
@@ -168,7 +170,7 @@
       <h3 class="text-lg font-semibold text-gray-900">Resources</h3>
       <button
         class="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
-        on:click={addResource}
+        onclick={() => addResource()}
       >
         + Add Resource
       </button>
@@ -191,7 +193,7 @@
           />
           <button
             class="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-            on:click={() => removeResource(index)}
+            onclick={() => removeResource(index)}
           >
             ✕
           </button>
@@ -204,20 +206,20 @@
   <div class="p-6 flex justify-between">
     <button
       class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"
-      on:click={() => dispatch('cancel')}
+      onclick={() => dispatch('cancel')}
     >
       Cancel
     </button>
     <div class="flex gap-3">
       <button
         class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
-        on:click={() => window.open('/api/export/' + course.id + '/html', '_blank')}
+        onclick={() => window.open('/api/export/' + course.id + '/html', '_blank')}
       >
         Preview
       </button>
       <button
         class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-        on:click={() => dispatch('save')}
+        onclick={() => dispatch('save')}
       >
         Save Course
       </button>
