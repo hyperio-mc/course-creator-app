@@ -90,7 +90,7 @@ export async function updateCourseRecord(
     throw new Error(result.error || 'Failed to update course');
   }
 
-  const record = result.data?.value ?? updatedRecord;
+  const record = result.data ?? updatedRecord;
   const definition = getDefinitionFromRecord(record);
   if (!definition) {
     throw new Error('Updated course definition is missing');
