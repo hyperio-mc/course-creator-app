@@ -3,19 +3,22 @@ WORKDIR /app
 
 # Install backend dependencies
 FROM base AS backend-deps
-COPY package.json bun.lockb* package-lock.json* yarn.lock* ./
-RUN bun install --frozen-lockfile || npm ci
+COPY package.json bun.lockb package-lock.json ./
+RUN bun install --frozen-lockfile
 
 # Install frontend dependencies and build
 FROM base AS frontend-build
-COPY frontend/package.json frontend/bun.lockb* frontend/package-lock.json* frontend/yarn.lock* ./frontend/
+WORKDIR /app
+COPY frontend/package.json frontend/bun.lockb* frontend/package-lock.json* ./frontend_temp/
 WORKDIR /app/frontend
+COPY frontend/package.json frontend/bun.lockb* frontend/package-lock.json* ./
 RUN bun install --frozen-lockfile || npm ci --legacy-peer-deps
 COPY frontend/ ./
-RUN bun run build || npm run build
+RUN bun run build
 
 # Production
 FROM base AS release
+WORKDIR /app
 COPY --from=backend-deps /app/node_modules ./node_modules
 COPY package.json ./
 COPY src/ ./src/
