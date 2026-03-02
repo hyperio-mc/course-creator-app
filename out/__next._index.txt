@@ -1,7 +1,0 @@
-1:"$Sreact.fragment"
-2:I[7492,["/a/course-creator-4473b404/_next/static/chunks/dea8f3eaf0c0f6ec.js"],"Providers"]
-3:I[60002,["/a/course-creator-4473b404/_next/static/chunks/878c844eed831dd0.js","/a/course-creator-4473b404/_next/static/chunks/b7568443fe64053e.js"],"default"]
-4:I[61997,["/a/course-creator-4473b404/_next/static/chunks/878c844eed831dd0.js","/a/course-creator-4473b404/_next/static/chunks/b7568443fe64053e.js"],"default"]
-5:I[29187,["/a/course-creator-4473b404/_next/static/chunks/dea8f3eaf0c0f6ec.js","/a/course-creator-4473b404/_next/static/chunks/5992c51c22facc35.js"],"default"]
-:HL["/a/course-creator-4473b404/_next/static/chunks/f51999b559413b9a.css","style"]
-0:{"buildId":"hrm_a1zMnecg9h5ouGCMU","rsc":["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/a/course-creator-4473b404/_next/static/chunks/f51999b559413b9a.css","precedence":"next"}],["$","script","script-0",{"src":"/a/course-creator-4473b404/_next/static/chunks/dea8f3eaf0c0f6ec.js","async":true}]],["$","html",null,{"lang":"en","children":["$","body",null,{"className":"geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__variable antialiased","children":["$","$L2",null,{"children":["$","$L3",null,{"parallelRouterKey":"children","template":["$","$L4",null,{}],"notFound":[["$","$L5",null,{}],[]]}]}]}]}]]}],"loading":null,"isPartial":false}
