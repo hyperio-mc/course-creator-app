@@ -68,10 +68,12 @@ ${prompt}`
   }
 
   const data = await response.json() as ScoutOSInteractResponse
+  console.log('ScoutOS response:', JSON.stringify(data, null, 2))
   
   // Extract content from various possible response formats
   const content = data.content || data.text || data.message || data.response || 
                   data.output || data.result || JSON.stringify(data)
+  console.log('Extracted content:', content)
   
   return parseCourseJson(content, videoUrl)
 }
