@@ -33,7 +33,7 @@ export async function generateCourseFromTranscript(
   const prompt = buildCoursePrompt(videoUrl, transcript, meta)
   
   // Use ScoutOS Agent API
-  // The agent API expects messages with content as a direct string (no role field)
+  // The agent API expects input/message as a direct string
   const systemPrompt = `You are an expert course designer. You create structured, interactive video courses from transcripts.
 
 Your courses are:
@@ -47,14 +47,14 @@ Output valid JSON only. No markdown, no explanation, just the JSON object.`
 
   const fullPrompt = `${systemPrompt}\n\n---\n\n${prompt}`
 
-  // Debug: log what we're sending
+  // ScoutOS Agent API expects messages array with content as plain strings
+  // Format: { messages: [{ role: "user", content: "actual string here" }] }
   const payload = {
     messages: [
-      { content: fullPrompt }
+      { role: "user", content: fullPrompt }
     ]
   }
-  console.log('ScoutOS request payload:', JSON.stringify(payload, null, 2))
-  console.log('content type:', typeof fullPrompt)
+  console.log('ScoutOS request payload:', JSON.stringify({ ...payload, messages: [{ role: 'user', content: '...' }] }))
   
   const response = await fetch(`https://api.scoutos.com/world/${SCOUTOS_AGENT_ID}/_interact_sync`, {
     method: 'POST',
