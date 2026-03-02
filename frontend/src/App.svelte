@@ -4,78 +4,78 @@
   import CourseList from './components/CourseList.svelte'
   import { courseStore } from './stores/course.js'
 
-  let view = $state('list') // 'list' | 'create' | 'edit'
-  let loading = $state(true)
+  // Use store's loading state instead of local state
+  let initialized = $state(false)
 
   onMount(async () => {
-    try {
-      await courseStore.loadCourses()
-    } catch (err) {
-      console.error('Failed to load courses:', err)
-    } finally {
-      loading = false
-    }
+    await courseStore.loadCourses()
+    initialized = true
   })
 
-  // Derived value for the current course (never null when editing)
+  // Derived value for the current course
   let currentCourse = $derived($courseStore.current)
 </script>
 
 <main class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-  {#if loading}
+  {#if !initialized}
     <div class="flex items-center justify-center min-h-screen">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
     </div>
-  {:else if view === 'list'}
+  {:else if $courseStore.courses.length === 0}
     <header class="bg-white shadow-sm">
       <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-gray-900 cursor-pointer" onclick={() => view = 'list'}>
-          📚 Course Creator
-        </h1>
+        <h1 class="text-2xl font-bold text-gray-900">📚 Course Creator</h1>
         <nav class="flex gap-4">
           <button
             class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-            onclick={() => { view = 'create'; courseStore.newCourse() }}
+            onclick={() => { courseStore.newCourse() }}
           >
             + New Course
           </button>
         </nav>
       </div>
     </header>
-
     <div class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
       <CourseList
         courses={$courseStore.courses}
-        oncreate={() => view = 'create'}
-        onedit={(e) => { courseStore.selectCourse(e.detail); view = 'edit' }}
+        oncreate={() => courseStore.newCourse()}
+        onedit={(e) => { courseStore.selectCourse(e.detail) }}
       />
     </div>
-  {:else if currentCourse}
+  {:else}
     <header class="bg-white shadow-sm">
       <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-gray-900 cursor-pointer" onclick={() => view = 'list'}>
-          📚 Course Creator
-        </h1>
+        <h1 class="text-2xl font-bold text-gray-900">📚 Course Creator</h1>
         <nav class="flex gap-4">
           <button
             class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-            onclick={() => { view = 'create'; courseStore.newCourse() }}
+            onclick={() => { courseStore.newCourse() }}
           >
             + New Course
           </button>
         </nav>
       </div>
     </header>
-
     <div class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-      <CourseEditor
-        course={currentCourse}
-        onsave={async () => {
-          await courseStore.saveCourse()
-          view = 'list'
-        }}
-        oncancel={() => view = 'list'}
+      <CourseList
+        courses={$courseStore.courses}
+        oncreate={() => courseStore.newCourse()}
+        onedit={(e) => { courseStore.selectCourse(e.detail) }}
       />
     </div>
   {/if}
 </main>
+
+{#if currentCourse}
+  <div class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-auto">
+      <CourseEditor
+        course={currentCourse}
+        onsave={async () => {
+          await courseStore.saveCourse()
+        }}
+        oncancel={() => courseStore.selectCourse(null)}
+      />
+    </div>
+  </div>
+{/if}
