@@ -33,7 +33,7 @@ export async function generateCourseFromTranscript(
   const prompt = buildCoursePrompt(videoUrl, transcript, meta)
   
   // Use ScoutOS Agent API
-  // The agent API expects messages with content as a direct string
+  // The agent API expects messages with content as a direct string (no role field)
   const systemPrompt = `You are an expert course designer. You create structured, interactive video courses from transcripts.
 
 Your courses are:
@@ -45,6 +45,8 @@ Your courses are:
 
 Output valid JSON only. No markdown, no explanation, just the JSON object.`
 
+  const fullPrompt = `${systemPrompt}\n\n---\n\n${prompt}`
+
   const response = await fetch(`https://api.scoutos.com/world/${SCOUTOS_AGENT_ID}/_interact_sync`, {
     method: 'POST',
     headers: {
@@ -53,8 +55,7 @@ Output valid JSON only. No markdown, no explanation, just the JSON object.`
     },
     body: JSON.stringify({
       messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: prompt }
+        { content: fullPrompt }
       ]
     })
   })
@@ -64,12 +65,26 @@ Output valid JSON only. No markdown, no explanation, just the JSON object.`
     throw new Error(`ScoutOS API error: ${response.status} - ${error}`)
   }
 
-  const data = await response.json() as ScoutOSInteractResponse
+  const data = await response.json()
   console.log('ScoutOS response:', JSON.stringify(data, null, 2))
-  
-  // Extract content from various possible response formats
-  const content = data.content || data.text || data.message || data.response || 
-                  data.output || data.result || JSON.stringify(data)
+
+  // Response is an array of messages: [{role, content, sources, timestamp}, ...]
+  // The assistant's response is the last message
+  let content: string
+  if (Array.isArray(data)) {
+    const assistantMsg = data.find((m: any) => m.role === 'assistant')
+    content = assistantMsg?.content || data[data.length - 1]?.content || ''
+  } else if (typeof data === 'object' && data !== null) {
+    // Fallback for other response formats
+    content = (data as any).content || (data as any).text || (data as any).message || 
+              (data as any).response || (data as any).output || JSON.stringify(data)
+  } else {
+    content = String(data)
+  }
+
+  if (!content) {
+    throw new Error('No content received from ScoutOS')
+  }
   console.log('Extracted content:', content)
   
   return parseCourseJson(content, videoUrl)
