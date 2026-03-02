@@ -12,7 +12,7 @@ WORKDIR /app
 COPY frontend/package.json frontend/bun.lock* frontend/package-lock.json* ./frontend_temp/
 WORKDIR /app/frontend
 COPY frontend/package.json frontend/bun.lock* frontend/package-lock.json* ./
-RUN bun install --frozen-lockfile || npm ci --legacy-peer-deps
+RUN bun install --frozen-lockfile
 COPY frontend/ ./
 RUN bun run build
 
