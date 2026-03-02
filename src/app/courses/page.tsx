@@ -48,7 +48,6 @@ export default function DashboardPage() {
       }
 
       const mapped = result.data
-        .map((doc) => doc.value)
         .filter((course) => course.user_id === user.id)
         .map((course): CourseWithMeta | null => {
           const definition = course.course_json ?? course.definition;
