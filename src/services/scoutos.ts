@@ -212,28 +212,31 @@ function parseCourseJson(content: string, videoUrl: string): { steps: Course['st
 export async function deployToZenBin(course: Course): Promise<{ zenbinId: string; zenbinUrl: string }> {
   const { generateHtml } = await import('./template')
   const html = generateHtml(course)
-  const encodedHtml = Buffer.from(html).toString('base64')
   
-  const response = await fetch('https://zenbin.onrender.com/v1/pages', {
+  // Use course slug as the page ID for ZenBin
+  // ZenBin API requires: POST /v1/pages/{id} with {html: "..."}
+  const pageId = course.slug || course.id
+  
+  const response = await fetch(`https://zenbin.org/v1/pages/${pageId}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      encoding: 'base64',
-      html: encodedHtml,
+      html: html,
       title: course.meta.title
     })
   })
   
   if (!response.ok) {
-    throw new Error(`ZenBin deploy failed: ${response.status}`)
+    const error = await response.text()
+    throw new Error(`ZenBin deploy failed: ${response.status} - ${error}`)
   }
   
   const data = await response.json() as { id: string; url?: string }
   
   return {
     zenbinId: data.id,
-    zenbinUrl: data.url || `https://zenbin.onrender.com/p/${data.id}`
+    zenbinUrl: data.url || `https://zenbin.org/p/${data.id}`
   }
 }
