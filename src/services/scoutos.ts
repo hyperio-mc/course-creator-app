@@ -189,63 +189,71 @@ function repairJson(jsonStr: string): any {
     console.log('Initial parse failed, trying structural repair...')
   }
   
-  // Step 5: Extract valid step objects using regex pattern matching
+  // Step 5: Extract valid step objects using improved regex pattern matching
+  // Handle content with escaped quotes and newlines
   const steps: any[] = []
   const resources: any[] = []
-  
-  // Match step objects pattern - be very permissive
-  const stepPattern = /\{\s*"title"\s*:\s*"([^"]+)"[^}]*"videoTimestamp"\s*:\s*"([^"]*)"[^}]*"content"\s*:\s*"([^"]*)"/gi
+
+  // Use a more robust pattern that handles escaped quotes and multi-line content
+  // Match individual step objects by looking for the step structure
+  const stepObjectPattern = /\{\s*"title"\s*:\s*"(?<title>(?:[^"\\]|\\.)*)"\s*,\s*"videoTimestamp"\s*:\s*"(?<videoTimestamp>(?:[^"\\]|\\.)*)"\s*,?\s*(?:"videoEndTimestamp"\s*:\s*"(?<videoEndTimestamp>(?:[^"\\]|\\.)*)"\s*,?\s*)?"content"\s*:\s*"(?<content>(?:[^"\\]|\\.|\n)*)"\s*,?\s*"estimatedTime"\s*:\s*"(?<estimatedTime>(?:[^"\\]|\\.)*)"/gi
+
   let stepMatch
-  while ((stepMatch = stepPattern.exec(cleaned)) !== null) {
-    steps.push({
-      title: stepMatch[1],
-      videoTimestamp: stepMatch[2] || '0:00',
-      content: stepMatch[3]
-    })
-  }
-  
-  // If we found steps via regex, construct valid structure
-  if (steps.length > 0) {
-    console.log(`Extracted ${steps.length} steps via pattern matching`)
-    return { steps, resources }
-  }
-  
-  // Step 6: Try to find and repair step objects individually
-  const stepBlocks = cleaned.split(/(?=\{\s*"title")/g)
-  for (const block of stepBlocks) {
-    if (!block.includes('"title"')) continue
-    
-    const titleMatch = block.match(/"title"\s*:\s*"([^"]+)"/)
-    const tsMatch = block.match(/"videoTimestamp"\s*:\s*"([^"]*)"/)
-    const endTsMatch = block.match(/"videoEndTimestamp"\s*:\s*"([^"]*)"/)
-    const contentMatch = block.match(/"content"\s*:\s*"([\s\S]*?)"(?:\s*[,}]|\s*"estimatedTime")/)
-    const timeMatch = block.match(/"estimatedTime"\s*:\s*"([^"]+)"/)
-    const labelMatch = block.match(/"label"\s*:\s*"([^"]+)"/)
-    
-    if (titleMatch) {
+  while ((stepMatch = stepObjectPattern.exec(cleaned)) !== null) {
+    const groups = stepMatch.groups
+    if (groups?.title) {
       steps.push({
-        title: titleMatch[1],
-        videoTimestamp: tsMatch?.[1] || '0:00',
-        videoEndTimestamp: endTsMatch?.[1],
-        content: contentMatch?.[1]?.replace(/\\"/g, '"').replace(/\n/g, ' ') || '',
-        estimatedTime: timeMatch?.[1] || '5 minutes',
-        checkpoint: { label: labelMatch?.[1] || 'I completed this step' }
+        title: groups.title.replace(/\\"/g, '"').replace(/\\n/g, '\n'),
+        videoTimestamp: groups.videoTimestamp || '0:00',
+        videoEndTimestamp: groups.videoEndTimestamp?.replace(/\\"/g, '"'),
+        content: (groups.content || '').replace(/\\"/g, '"').replace(/\\n/g, '\n'),
+        estimatedTime: groups.estimatedTime || '5 minutes'
       })
     }
   }
-  
-  // Extract resources
-  const resourcePattern = /\{\s*"label"\s*:\s*"([^"]+)"[^}]*"url"\s*:\s*"([^"]+)"/gi
-  let resourceMatch
-  while ((resourceMatch = resourcePattern.exec(cleaned)) !== null) {
-    resources.push({
-      label: resourceMatch[1],
-      url: resourceMatch[2]
-    })
+
+  // If the sophisticated pattern didn't work, try a simpler approach
+  if (steps.length === 0) {
+    // Split by step titles and extract each step's data
+    const titleMatches = [...cleaned.matchAll(/"title"\s*:\s*"((?:[^"\\]|\\.)*)"/gi)]
+    const tsMatches = [...cleaned.matchAll(/"videoTimestamp"\s*:\s*"([^"]*)"/gi)]
+    const endTsMatches = [...cleaned.matchAll(/"videoEndTimestamp"\s*:\s*"([^"]*)"/gi)]
+
+    for (let i = 0; i < titleMatches.length; i++) {
+      const title = titleMatches[i][1].replace(/\\"/g, '"')
+      // Find content between this title and the next title (or end of steps array)
+      const startIdx = titleMatches[i].index! + titleMatches[i][0].length
+      const endIdx = titleMatches[i + 1]?.index || cleaned.indexOf('"resources"')
+      const stepBlock = cleaned.substring(startIdx, endIdx)
+
+      // Extract content from this step block - handle escaped quotes
+      const contentMatch = stepBlock.match(/"content"\s*:\s*"((?:[^"\\]|\\.)*)"/)
+      const timeMatch = stepBlock.match(/"estimatedTime"\s*:\s*"([^"]*)"/)
+      const checkpointMatch = stepBlock.match(/"checkpoint"\s*:\s*\{\s*"label"\s*:\s*"([^"]*)"/)
+
+      steps.push({
+        title,
+        videoTimestamp: tsMatches[i]?.[1] || '0:00',
+        videoEndTimestamp: endTsMatches[i]?.[1],
+        content: contentMatch?.[1]?.replace(/\\"/g, '"').replace(/\\n/g, '\n') || '',
+        estimatedTime: timeMatch?.[1] || '5 minutes',
+        checkpoint: { label: checkpointMatch?.[1] || 'I completed this step' }
+      })
+    }
   }
-  
+
+  // If we found steps via regex, construct valid structure
   if (steps.length > 0) {
-    console.log(`Recovered ${steps.length} steps and ${resources.length} resources`)
+    console.log(`Extracted ${steps.length} steps via pattern matching`)
+    // Also extract resources
+    const resourcePattern = /\{\s*"label"\s*:\s*"([^"]+)"[^}]*"url"\s*:\s*"([^"]+)"/gi
+    let resourceMatch
+    while ((resourceMatch = resourcePattern.exec(cleaned)) !== null) {
+      resources.push({
+        label: resourceMatch[1],
+        url: resourceMatch[2]
+      })
+    }
     return { steps, resources }
   }
   
