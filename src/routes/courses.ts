@@ -42,7 +42,7 @@ courses.post('/', async (c) => {
     id,
     slug,
     meta: input.meta,
-    steps: input.steps.map((step, index) => ({
+    steps: (input.steps || []).map((step, index) => ({
       ...step,
       id: `step-${index + 1}`
     })),
