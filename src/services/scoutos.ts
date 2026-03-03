@@ -3,7 +3,7 @@ import type { Course } from '../types/course'
 const SCOUTOS_API_KEY = process.env.SCOUTOS_API_KEY || process.env.SCOUT_SECRET_KEY
 const SCOUTOS_WORKSPACE_ID = process.env.SCOUTOS_WORKSPACE_ID || 'cmlo0kbsp19t00qs65zsgougw'
 // Default to Technical Sales Support agent - can be overridden via env
-const SCOUTOS_AGENT_ID = process.env.SCOUTOS_AGENT_ID || 'cmlo0kd7p1wz1oos6z8hmd7hg'
+const SCOUTOS_AGENT_ID = process.env.SCOUTOS_AGENT_ID || 'cmm9ufh820ghe0ps63v57its4'
 
 interface ScoutOSInteractResponse {
   id?: string
