@@ -12,37 +12,114 @@
       year: 'numeric'
     })
   }
+
+  function getStatus(course) {
+    const explicitStatus = course.meta?.status
+    if (explicitStatus) return explicitStatus
+
+    if (!course.meta?.title?.trim() || course.steps.length === 0) return 'draft'
+    if (course.steps.length < 3) return 'review'
+    return 'published'
+  }
+
+  function getStatusClasses(status) {
+    switch (status.toLowerCase()) {
+      case 'published':
+        return 'bg-emerald-50 text-emerald-700 ring-emerald-600/20'
+      case 'review':
+      case 'in review':
+        return 'bg-amber-50 text-amber-700 ring-amber-600/20'
+      default:
+        return 'bg-slate-100 text-slate-700 ring-slate-500/20'
+    }
+  }
+
+  function getCompletion(course) {
+    let score = 0
+    if (course.meta?.title?.trim()) score += 1
+    if (course.meta?.description?.trim()) score += 1
+    if (course.steps.length > 0) score += 2
+    if (course.resources?.length > 0) score += 1
+    return Math.round((score / 5) * 100)
+  }
+
+  function exportCourse(courseId) {
+    window.open(`/api/export/${courseId}/download?format=html`, '_blank')
+  }
 </script>
 
-<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
   {#each courses as course (course.id)}
-    <div class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition">
-      <div class="p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-2">{course.meta.title}</h3>
-        <p class="text-gray-600 text-sm mb-4 line-clamp-2">{course.meta.description || 'No description'}</p>
-        <div class="flex gap-4 text-sm text-gray-500 mb-4">
-          <span>📝 {course.steps.length} steps</span>
-          <span>⏱️ {course.meta.estimatedTime}</span>
+    {@const status = getStatus(course)}
+    {@const completion = getCompletion(course)}
+    <article class="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-slate-300 hover:shadow-lg">
+      <div class="relative border-b border-slate-200 bg-gradient-to-br from-slate-50 via-white to-blue-50 px-6 py-5">
+        <div class="absolute right-6 top-5">
+          <span class={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ring-1 ring-inset ${getStatusClasses(status)}`}>
+            {status}
+          </span>
         </div>
-        <div class="flex gap-2">
+        <div class="mb-4 flex items-start gap-3 pr-24">
+          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-sm font-bold text-white">
+            {course.meta.title?.trim()?.slice(0, 2).toUpperCase() || 'CR'}
+          </div>
+          <div>
+            <h3 class="text-xl font-semibold leading-tight text-slate-900">{course.meta.title || 'Untitled Course'}</h3>
+            <p class="mt-1 text-sm font-medium text-slate-500">Updated {formatDate(course.updatedAt)}</p>
+          </div>
+        </div>
+        <p class="min-h-[2.75rem] text-sm leading-relaxed text-slate-600 line-clamp-2">
+          {course.meta.description || 'Add a short course summary to help learners understand the objective.'}
+        </p>
+      </div>
+
+      <div class="px-6 py-5">
+        <div class="mb-5 grid grid-cols-2 gap-3 text-sm">
+          <div class="rounded-lg bg-slate-50 px-3 py-2">
+            <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Structure</p>
+            <p class="mt-1 font-semibold text-slate-900">{course.steps.length} steps</p>
+          </div>
+          <div class="rounded-lg bg-slate-50 px-3 py-2">
+            <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Estimated Time</p>
+            <p class="mt-1 font-semibold text-slate-900">{course.meta.estimatedTime || 'TBD'}</p>
+          </div>
+        </div>
+
+        <div class="mb-5">
+          <div class="mb-2 flex items-center justify-between">
+            <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Course completion</p>
+            <p class="text-sm font-semibold text-slate-700">{completion}%</p>
+          </div>
+          <div class="h-2 rounded-full bg-slate-100">
+            <div
+              class="h-2 rounded-full bg-slate-900 transition-all duration-300"
+              style={`width: ${completion}%`}
+            ></div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
           <button
-            class="flex-1 px-3 py-2 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition text-sm font-medium"
+            class="rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
             onclick={() => dispatch('edit', course)}
           >
             Edit
           </button>
           <button
-            class="px-3 py-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition text-sm font-medium"
+            class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
             onclick={() => window.open(`/api/export/${course.id}/html`, '_blank')}
           >
             Preview
           </button>
+          <button
+            class="rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
+            onclick={() => exportCourse(course.id)}
+          >
+            Export
+          </button>
         </div>
       </div>
-      <div class="px-6 py-3 bg-gray-50 text-xs text-gray-500">
-        Updated {formatDate(course.updatedAt)}
-      </div>
-    </div>
+    </article>
   {:else}
     <div class="col-span-full text-center py-12">
       <div class="text-gray-400 text-6xl mb-4">📚</div>
