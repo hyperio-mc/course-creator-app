@@ -29,9 +29,6 @@
         courses={$courseStore.courses}
         oncreate={() => courseStore.newCourse()}
         onedit={(e) => { courseStore.selectCourse(e.detail) }}
-        onpublish={async (e) => {
-          await courseStore.publishCourse(e.detail.id)
-        }}
       />
     </div>
   {/if}
