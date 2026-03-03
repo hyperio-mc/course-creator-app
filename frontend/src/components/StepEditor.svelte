@@ -1,12 +1,14 @@
 <script>
-  import { createEventDispatcher } from 'svelte'
-  const dispatch = createEventDispatcher()
-
-  // Use $props() in Svelte 5 runes mode
-  let { step, index } = $props()
+  // Use $props() in Svelte 5 runes mode - callback props instead of dispatch
+  let { step, index, onupdate, onremove } = $props()
 
   // Local state for collapsed
   let collapsed = $state(true)
+
+  // Notify parent when step fields change
+  function notifyUpdate() {
+    onupdate?.({ ...step })
+  }
 
   // Derived value for video ID
   function extractVideoId(url) {
@@ -31,9 +33,9 @@
     </div>
     <div class="flex items-center gap-2">
       {#if collapsed}
-        <span class="text-gray-400">▼</span>
+        <span class="text-gray-400">&#9660;</span>
       {:else}
-        <span class="text-gray-400">▲</span>
+        <span class="text-gray-400">&#9650;</span>
       {/if}
     </div>
   </div>
@@ -47,6 +49,7 @@
           <input
             type="url"
             bind:value={step.videoUrl}
+            oninput={notifyUpdate}
             class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
             placeholder="https://youtube.com/watch?v=..."
           />
@@ -57,6 +60,7 @@
             <input
               type="text"
               bind:value={step.videoTimestamp}
+              oninput={notifyUpdate}
               class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
               placeholder="0:00"
             />
@@ -66,6 +70,7 @@
             <input
               type="text"
               bind:value={step.videoEndTimestamp}
+              oninput={notifyUpdate}
               class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
               placeholder="2:30"
             />
@@ -93,6 +98,7 @@
         <input
           type="text"
           bind:value={step.title}
+          oninput={notifyUpdate}
           class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
           placeholder="What learners will do in this step"
         />
@@ -103,6 +109,7 @@
         <label class="block text-sm font-medium text-gray-700 mb-1">Content (Markdown)</label>
         <textarea
           bind:value={step.content}
+          oninput={notifyUpdate}
           rows="6"
           class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 font-mono text-sm"
           placeholder="## What you'll do&#10;&#10;- First step&#10;- Second step&#10;&#10;## Tips&#10;&#10;- Tip 1&#10;- Tip 2"
@@ -116,6 +123,7 @@
           <input
             type="text"
             bind:value={step.estimatedTime}
+            oninput={notifyUpdate}
             class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
             placeholder="5 minutes"
           />
@@ -125,6 +133,7 @@
           <input
             type="text"
             bind:value={step.checkpoint.label}
+            oninput={notifyUpdate}
             class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
             placeholder="I completed this step"
           />
@@ -137,6 +146,7 @@
         <input
           type="text"
           bind:value={step.checkpoint.hint}
+          oninput={notifyUpdate}
           class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
           placeholder="Help text for the checkpoint"
         />
@@ -145,8 +155,9 @@
       <!-- Remove -->
       <div class="flex justify-end">
         <button
+          type="button"
           class="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition"
-          onclick={() => dispatch('remove')}
+          onclick={() => onremove?.()}
         >
           Remove Step
         </button>

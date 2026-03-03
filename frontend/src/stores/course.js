@@ -48,23 +48,25 @@ function createCourseStore() {
     update(s => ({ ...s, current: course }))
   }
 
-  async function saveCourse() {
+  async function saveCourse(courseData) {
+    // Accept course data as parameter, or fall back to store's current
     const state = get()
-    if (!state.current) return
+    const courseToSave = courseData || state.current
+    if (!courseToSave) return
 
     update(s => ({ ...s, loading: true, error: null }))
 
     try {
-      const existing = state.courses.find(c => c.id === state.current.id)
+      const existing = state.courses.find(c => c.id === courseToSave.id)
       const url = existing
-        ? `${API_BASE}/courses/${state.current.id}`
+        ? `${API_BASE}/courses/${courseToSave.id}`
         : `${API_BASE}/courses`
       const method = existing ? 'PUT' : 'POST'
 
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ meta: state.current.meta, steps: state.current.steps, resources: state.current.resources })
+        body: JSON.stringify({ meta: courseToSave.meta, steps: courseToSave.steps, resources: courseToSave.resources })
       })
 
       const data = await res.json()

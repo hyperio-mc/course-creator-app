@@ -137,7 +137,7 @@
         <div class="grid grid-cols-2 gap-2">
           <button
             class="rounded-lg bg-orange-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-orange-700"
-            onclick={() => onedit?.({ detail: course })}
+            onclick={() => onedit?.(course)}
           >
             Edit
           </button>

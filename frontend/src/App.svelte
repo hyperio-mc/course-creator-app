@@ -28,7 +28,7 @@
       <CourseList
         courses={$courseStore.courses}
         oncreate={() => courseStore.newCourse()}
-        onedit={(e) => { courseStore.selectCourse(e.detail) }}
+        onedit={(course) => { courseStore.selectCourse(course) }}
       />
     </div>
   {/if}
@@ -39,8 +39,8 @@
     <div class="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-auto">
       <CourseEditor
         course={$courseStore.current}
-        onsave={async () => {
-          await courseStore.saveCourse()
+        onsave={async (editedCourse) => {
+          await courseStore.saveCourse(editedCourse)
         }}
         oncancel={() => courseStore.selectCourse(null)}
       />

@@ -3,7 +3,14 @@
 
   // Use $props() in Svelte 5 runes mode
   // course must be passed from parent - parent handles null case
-  let { course, onsave, oncancel } = $props()
+  let { course: initialCourse, onsave, oncancel } = $props()
+
+  // Deep clone the course so edits don't mutate the original
+  let course = $state(JSON.parse(JSON.stringify(initialCourse)))
+
+  // Form validation state
+  let validationErrors = $state([])
+  let saving = $state(false)
 
   // AI Generation state
   let showGenerateModal = $state(false)
@@ -11,6 +18,17 @@
   let generateTranscript = $state('')
   let generating = $state(false)
   let generateError = $state('')
+
+  function validate() {
+    const errors = []
+    if (!course.meta.title?.trim()) {
+      errors.push('Course title is required')
+    }
+    if (!course.meta.author?.trim()) {
+      errors.push('Author name is required')
+    }
+    return errors
+  }
 
   function addStep() {
     course = {
@@ -52,6 +70,22 @@
       ...course,
       resources: course.resources.filter((_, i) => i !== index)
     }
+  }
+
+  async function handleSave() {
+    validationErrors = validate()
+    if (validationErrors.length > 0) return
+
+    saving = true
+    try {
+      await onsave?.(course)
+    } finally {
+      saving = false
+    }
+  }
+
+  function handleCancel() {
+    oncancel?.()
   }
 
   async function generateFromTranscript() {
@@ -114,26 +148,44 @@
   <!-- Header -->
   <div class="p-6 border-b">
     <h2 class="text-xl font-semibold text-gray-900 mb-4">
-      {course?.id ? 'Edit Course' : 'New Course'}
+      {initialCourse?.id && !initialCourse.id.startsWith('step-') ? 'Edit Course' : 'New Course'}
     </h2>
+
+    <!-- Validation Errors -->
+    {#if validationErrors.length > 0}
+      <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+        <p class="text-sm font-medium text-red-800 mb-1">Please fix the following:</p>
+        <ul class="list-disc list-inside text-sm text-red-700">
+          {#each validationErrors as error}
+            <li>{error}</li>
+          {/each}
+        </ul>
+      </div>
+    {/if}
 
     <!-- Meta fields -->
     <div class="grid gap-4 md:grid-cols-2">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Title <span class="text-red-500">*</span>
+        </label>
         <input
           type="text"
           bind:value={course.meta.title}
           class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+          class:border-red-300={validationErrors.some(e => e.includes('title'))}
           placeholder="Course title"
         />
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Author</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Author <span class="text-red-500">*</span>
+        </label>
         <input
           type="text"
           bind:value={course.meta.author}
           class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+          class:border-red-300={validationErrors.some(e => e.includes('Author'))}
           placeholder="Your name"
         />
       </div>
@@ -175,7 +227,7 @@
       class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition flex items-center gap-2"
       onclick={() => generateFromTranscript()}
     >
-      <span>✨</span>
+      <span>&#10024;</span>
       <span>Generate from Transcript (AI)</span>
     </button>
   </div>
@@ -197,7 +249,7 @@
         <StepEditor
           {step}
           {index}
-          onupdate={(e) => updateStep(index, e.detail)}
+          onupdate={(updatedStep) => updateStep(index, updatedStep)}
           onremove={() => removeStep(index)}
         />
       {/each}
@@ -241,7 +293,7 @@
             class="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition"
             onclick={() => removeResource(index)}
           >
-            ✕
+            &#10005;
           </button>
         </div>
       {/each}
@@ -251,23 +303,27 @@
   <!-- Actions -->
   <div class="p-6 flex justify-between">
       <button
+        type="button"
         class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"
-        onclick={() => oncancel?.()}
+        onclick={handleCancel}
       >
         Cancel
       </button>
     <div class="flex gap-3">
       <button
+        type="button"
         class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
         onclick={() => window.open('/api/export/' + course.id + '/html', '_blank')}
       >
         Preview
       </button>
       <button
-        class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition"
-        onclick={() => onsave?.()}
+        type="button"
+        class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        onclick={handleSave}
+        disabled={saving}
       >
-        Save Course
+        {saving ? 'Saving...' : 'Save Course'}
       </button>
     </div>
   </div>
@@ -278,7 +334,7 @@
   <div class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[60]">
     <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-auto">
       <div class="p-6 border-b">
-        <h2 class="text-xl font-semibold text-gray-900">✨ Generate Course from Transcript</h2>
+        <h2 class="text-xl font-semibold text-gray-900">&#10024; Generate Course from Transcript</h2>
         <p class="text-gray-600 mt-1">Paste a video URL and transcript to auto-generate course content.</p>
       </div>
       
@@ -328,10 +384,10 @@
           disabled={generating}
         >
           {#if generating}
-            <span class="animate-spin">⏳</span>
+            <span class="animate-spin">&#9203;</span>
             <span>Generating...</span>
           {:else}
-            <span>✨</span>
+            <span>&#10024;</span>
             <span>Generate Course</span>
           {/if}
         </button>
