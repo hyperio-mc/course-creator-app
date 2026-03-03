@@ -12,8 +12,8 @@
     initialized = true
   })
 
-  // Derived value for the current course
-  let currentCourse = $derived($courseStore.current)
+  // Current course from store (already reactive via $store syntax)
+  // No $derived needed - $courseStore.current is already reactive
 </script>
 
 <main class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -66,11 +66,11 @@
   {/if}
 </main>
 
-{#if currentCourse}
+{#if $courseStore.current}
   <div class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-auto">
       <CourseEditor
-        course={currentCourse}
+        course={$courseStore.current}
         onsave={async () => {
           await courseStore.saveCourse()
         }}
