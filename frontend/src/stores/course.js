@@ -33,7 +33,8 @@ function createCourseStore() {
           description: '',
           author: '',
           estimatedTime: '15 minutes',
-          difficulty: 'beginner'
+          difficulty: 'beginner',
+          status: 'draft'
         },
         steps: [],
         resources: [],
@@ -88,7 +89,37 @@ function createCourseStore() {
     }
   }
 
-  return { subscribe, set, update, loadCourses, newCourse, selectCourse, saveCourse }
+  async function publishCourse(courseId) {
+    const state = get()
+    const course = state.courses.find(c => c.id === courseId)
+    if (!course) return
+
+    update(s => ({ ...s, loading: true, error: null }))
+
+    try {
+      const res = await fetch(`${API_BASE}/courses/${courseId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          meta: { ...course.meta, status: 'published' },
+          steps: course.steps,
+          resources: course.resources
+        })
+      })
+
+      const data = await res.json()
+
+      update(s => ({
+        ...s,
+        courses: s.courses.map(c => c.id === data.course.id ? data.course : c),
+        loading: false
+      }))
+    } catch (error) {
+      update(s => ({ ...s, error: error.message, loading: false }))
+    }
+  }
+
+  return { subscribe, set, update, loadCourses, newCourse, selectCourse, saveCourse, publishCourse }
 }
 
 export const courseStore = createCourseStore()

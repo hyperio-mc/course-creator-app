@@ -1,6 +1,8 @@
 <script>
+  import { courseStore } from '../stores/course.js'
+
   // Use callback props in Svelte 5 runes mode
-  let { courses = [], oncreate, onedit, onpublish } = $props()
+  let { courses = [], oncreate, onedit } = $props()
 
   function formatDate(date) {
     return new Date(date).toLocaleDateString('en-US', {
@@ -46,6 +48,10 @@
 
   function viewCourse(courseId) {
     window.open(`/api/export/${courseId}/html`, '_blank')
+  }
+
+  async function publishCourse(courseId) {
+    await courseStore.publishCourse(courseId)
   }
 </script>
 
@@ -127,7 +133,7 @@
           </button>
           <button
             class={`rounded-lg px-3 py-2 text-sm font-semibold transition ${canPublish ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'cursor-not-allowed bg-emerald-100 text-emerald-700'}`}
-            onclick={() => canPublish && onpublish?.({ detail: course })}
+            onclick={() => canPublish && publishCourse(course.id)}
             disabled={!canPublish}
           >
             {#if canPublish}
