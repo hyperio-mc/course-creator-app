@@ -1,11 +1,9 @@
 <script>
-  import { createEventDispatcher } from 'svelte'
   import StepEditor from './StepEditor.svelte'
-  const dispatch = createEventDispatcher()
 
   // Use $props() in Svelte 5 runes mode
   // course must be passed from parent - parent handles null case
-  let { course } = $props()
+  let { course, onsave, oncancel } = $props()
 
   // AI Generation state
   let showGenerateModal = $state(false)
@@ -252,12 +250,12 @@
 
   <!-- Actions -->
   <div class="p-6 flex justify-between">
-    <button
-      class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"
-      onclick={() => dispatch('cancel')}
-    >
-      Cancel
-    </button>
+      <button
+        class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"
+        onclick={() => oncancel?.()}
+      >
+        Cancel
+      </button>
     <div class="flex gap-3">
       <button
         class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
@@ -267,7 +265,7 @@
       </button>
       <button
         class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition"
-        onclick={() => dispatch('save')}
+        onclick={() => onsave?.()}
       >
         Save Course
       </button>
