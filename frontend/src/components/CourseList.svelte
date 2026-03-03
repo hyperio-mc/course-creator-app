@@ -1,9 +1,6 @@
 <script>
-  import { createEventDispatcher } from 'svelte'
-  const dispatch = createEventDispatcher()
-
-  // Use $props() in Svelte 5 runes mode
-  let { courses = [] } = $props()
+  // Use callback props in Svelte 5 runes mode
+  let { courses = [], oncreate, onedit, onpublish } = $props()
 
   function formatDate(date) {
     return new Date(date).toLocaleDateString('en-US', {
@@ -14,24 +11,24 @@
   }
 
   function getStatus(course) {
-    const explicitStatus = course.meta?.status
-    if (explicitStatus) return explicitStatus
-
-    if (!course.meta?.title?.trim() || course.steps.length === 0) return 'draft'
-    if (course.steps.length < 3) return 'review'
-    return 'published'
+    return course.meta?.status === 'published' ? 'published' : 'draft'
   }
 
   function getStatusClasses(status) {
     switch (status.toLowerCase()) {
       case 'published':
         return 'bg-emerald-50 text-emerald-700 ring-emerald-600/20'
-      case 'review':
-      case 'in review':
-        return 'bg-amber-50 text-amber-700 ring-amber-600/20'
       default:
         return 'bg-slate-100 text-slate-700 ring-slate-500/20'
     }
+  }
+
+  function getStatusLabel(status) {
+    return status === 'published' ? 'Published' : 'Draft'
+  }
+
+  function isReadyToPublish(course) {
+    return Boolean(course.meta?.title?.trim()) && course.steps.length > 0
   }
 
   function getCompletion(course) {
@@ -46,21 +43,27 @@
   function exportCourse(courseId) {
     window.open(`/api/export/${courseId}/download?format=html`, '_blank')
   }
+
+  function viewCourse(courseId) {
+    window.open(`/api/export/${courseId}/html`, '_blank')
+  }
 </script>
 
 <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
   {#each courses as course (course.id)}
     {@const status = getStatus(course)}
     {@const completion = getCompletion(course)}
+    {@const readyToPublish = isReadyToPublish(course)}
+    {@const canPublish = status !== 'published'}
     <article class="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-slate-300 hover:shadow-lg">
-      <div class="relative border-b border-slate-200 bg-gradient-to-br from-slate-50 via-white to-blue-50 px-6 py-5">
+      <div class="relative border-b border-slate-200 bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 px-6 py-5">
         <div class="absolute right-6 top-5">
           <span class={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ring-1 ring-inset ${getStatusClasses(status)}`}>
-            {status}
+            {getStatusLabel(status)}
           </span>
         </div>
         <div class="mb-4 flex items-start gap-3 pr-24">
-          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-sm font-bold text-white">
+          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-orange-600 text-sm font-bold text-white">
             {course.meta.title?.trim()?.slice(0, 2).toUpperCase() || 'CR'}
           </div>
           <div>
@@ -74,6 +77,11 @@
       </div>
 
       <div class="px-6 py-5">
+        <div class="mb-4 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+          <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Workflow</p>
+          <p class="mt-1 text-sm font-medium text-slate-700">Draft &rarr; Published</p>
+        </div>
+
         <div class="mb-5 grid grid-cols-2 gap-3 text-sm">
           <div class="rounded-lg bg-slate-50 px-3 py-2">
             <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Structure</p>
@@ -92,30 +100,41 @@
           </div>
           <div class="h-2 rounded-full bg-slate-100">
             <div
-              class="h-2 rounded-full bg-slate-900 transition-all duration-300"
+              class="h-2 rounded-full bg-orange-600 transition-all duration-300"
               style={`width: ${completion}%`}
             ></div>
           </div>
         </div>
 
-        <div class="grid grid-cols-3 gap-2">
+        <div class="grid grid-cols-2 gap-2">
           <button
-            class="rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-            onclick={() => dispatch('edit', course)}
+            class="rounded-lg bg-orange-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-orange-700"
+            onclick={() => onedit?.({ detail: course })}
           >
             Edit
           </button>
           <button
             class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
-            onclick={() => window.open(`/api/export/${course.id}/html`, '_blank')}
+            onclick={() => viewCourse(course.id)}
           >
-            Preview
+            View
           </button>
           <button
             class="rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
             onclick={() => exportCourse(course.id)}
           >
             Export
+          </button>
+          <button
+            class={`rounded-lg px-3 py-2 text-sm font-semibold transition ${canPublish ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'cursor-not-allowed bg-emerald-100 text-emerald-700'}`}
+            onclick={() => canPublish && onpublish?.({ detail: course })}
+            disabled={!canPublish}
+          >
+            {#if canPublish}
+              {readyToPublish ? 'Publish' : 'Save & Publish'}
+            {:else}
+              Published
+            {/if}
           </button>
         </div>
       </div>
@@ -126,8 +145,8 @@
       <h3 class="text-lg font-medium text-gray-900 mb-2">No courses yet</h3>
       <p class="text-gray-500 mb-4">Create your first course to get started</p>
       <button
-        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-        onclick={() => dispatch('create')}
+        class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition"
+        onclick={() => oncreate?.()}
       >
         Create Course
       </button>

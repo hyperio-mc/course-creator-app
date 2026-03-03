@@ -17,10 +17,10 @@
   // No $derived needed - $courseStore.current is already reactive
 </script>
 
-<main class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+<main class="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
   {#if !initialized}
     <div class="flex items-center justify-center min-h-screen">
-      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
     </div>
   {:else}
     <AppHeader onNewCourse={() => courseStore.newCourse()} />
@@ -29,6 +29,9 @@
         courses={$courseStore.courses}
         oncreate={() => courseStore.newCourse()}
         onedit={(e) => { courseStore.selectCourse(e.detail) }}
+        onpublish={async (e) => {
+          await courseStore.publishCourse(e.detail.id)
+        }}
       />
     </div>
   {/if}

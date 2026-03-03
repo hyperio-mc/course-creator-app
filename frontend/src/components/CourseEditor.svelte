@@ -126,7 +126,7 @@
         <input
           type="text"
           bind:value={course.meta.title}
-          class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
           placeholder="Course title"
         />
       </div>
@@ -135,7 +135,7 @@
         <input
           type="text"
           bind:value={course.meta.author}
-          class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
           placeholder="Your name"
         />
       </div>
@@ -144,7 +144,7 @@
         <textarea
           bind:value={course.meta.description}
           rows="2"
-          class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
           placeholder="Brief description of the course"
         ></textarea>
       </div>
@@ -153,7 +153,7 @@
         <input
           type="text"
           bind:value={course.meta.estimatedTime}
-          class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
           placeholder="e.g., 15 minutes"
         />
       </div>
@@ -161,7 +161,7 @@
         <label class="block text-sm font-medium text-gray-700 mb-1">Difficulty</label>
         <select
           bind:value={course.meta.difficulty}
-          class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
         >
           <option value="beginner">Beginner</option>
           <option value="intermediate">Intermediate</option>
@@ -172,9 +172,9 @@
   </div>
 
   <!-- AI Generation -->
-  <div class="p-6 bg-indigo-50 border-b">
+  <div class="p-6 bg-orange-50 border-b">
     <button
-      class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition flex items-center gap-2"
+      class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition flex items-center gap-2"
       onclick={() => generateFromTranscript()}
     >
       <span>✨</span>
@@ -230,13 +230,13 @@
           <input
             type="text"
             bind:value={resource.label}
-            class="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+             class="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500"
             placeholder="Resource name"
           />
           <input
             type="url"
             bind:value={resource.url}
-            class="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+             class="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500"
             placeholder="https://..."
           />
           <button
@@ -266,7 +266,7 @@
         Preview
       </button>
       <button
-        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+        class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition"
         onclick={() => dispatch('save')}
       >
         Save Course
@@ -296,7 +296,7 @@
           <input
             type="url"
             bind:value={generateVideoUrl}
-            class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+            class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500"
             placeholder="https://youtube.com/watch?v=... or https://loom.com/share/..."
           />
         </div>
@@ -306,7 +306,7 @@
           <textarea
             bind:value={generateTranscript}
             rows="10"
-            class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+            class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500"
             placeholder="Paste your video transcript here..."
           ></textarea>
         </div>
@@ -325,7 +325,7 @@
           Cancel
         </button>
         <button
-          class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           onclick={doGenerate}
           disabled={generating}
         >
