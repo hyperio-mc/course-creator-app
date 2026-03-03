@@ -82,7 +82,7 @@ Output valid JSON only. No markdown, no explanation, just the JSON object.`
   console.log('ScoutOS response:', JSON.stringify(data, null, 2))
 
   // Response is an array of messages: [{role, content, sources, timestamp}, ...]
-  // The assistant's response is the last message
+  // The assistant's response is typically the last content item
   let content: string
   if (Array.isArray(data)) {
     console.log('ScoutOS response is array with', data.length, 'items')
@@ -90,11 +90,23 @@ Output valid JSON only. No markdown, no explanation, just the JSON object.`
     if (assistantMsg?.content) {
       content = assistantMsg.content
     } else {
-      // Concatenate all content from messages with content
-      const contentParts = data
-        .filter((m: any) => m.content && typeof m.content === 'string')
+      // Get all content items, excluding user messages (which contain the prompt)
+      // ScoutOS returns: [user msg, assistant msg (no content), content object]
+      // We want the LAST content item which is the assistant's response
+      const contentItems = data
+        .filter((m: any) => m.content && typeof m.content === 'string' && m.role !== 'user')
         .map((m: any) => m.content)
-      content = contentParts.join('\n')
+      
+      // If no non-user content found, take the last content item
+      if (contentItems.length === 0) {
+        const allContent = data
+          .filter((m: any) => m.content && typeof m.content === 'string')
+          .map((m: any) => m.content)
+        // Take the last one (assistant response) not the first (user prompt)
+        content = allContent[allContent.length - 1] || ''
+      } else {
+        content = contentItems.join('\n')
+      }
     }
   } else if (typeof data === 'object' && data !== null) {
     // Fallback for other response formats
