@@ -4,6 +4,22 @@
   // Use callback props in Svelte 5 runes mode
   let { courses = [], oncreate, onedit } = $props()
 
+  let deleteMessage = $state(null)
+
+  async function handleDelete(course) {
+    const title = course.meta?.title?.trim() || 'Untitled Course'
+    const confirmed = confirm(`Are you sure you want to delete "${title}"? This action cannot be undone.`)
+    if (!confirmed) return
+
+    const result = await courseStore.deleteCourse(course.id)
+    if (result.success) {
+      deleteMessage = { type: 'success', text: `"${title}" has been deleted.` }
+    } else {
+      deleteMessage = { type: 'error', text: `Failed to delete "${title}": ${result.error}` }
+    }
+    setTimeout(() => deleteMessage = null, 4000)
+  }
+
   function formatDate(date) {
     return new Date(date).toLocaleDateString('en-US', {
       month: 'short',
@@ -54,6 +70,12 @@
     await courseStore.publishCourse(courseId)
   }
 </script>
+
+{#if deleteMessage}
+  <div class={`mb-4 rounded-lg px-4 py-3 text-sm font-medium ${deleteMessage.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+    {deleteMessage.text}
+  </div>
+{/if}
 
 <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
   {#each courses as course (course.id)}
@@ -141,6 +163,12 @@
             {:else}
               Published
             {/if}
+          </button>
+          <button
+            class="col-span-2 rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-semibold text-red-600 transition hover:border-red-300 hover:bg-red-50"
+            onclick={() => handleDelete(course)}
+          >
+            Delete
           </button>
         </div>
       </div>

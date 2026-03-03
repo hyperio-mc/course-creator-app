@@ -119,7 +119,33 @@ function createCourseStore() {
     }
   }
 
-  return { subscribe, set, update, loadCourses, newCourse, selectCourse, saveCourse, publishCourse }
+  async function deleteCourse(courseId) {
+    update(s => ({ ...s, loading: true, error: null }))
+
+    try {
+      const res = await fetch(`${API_BASE}/courses/${courseId}`, {
+        method: 'DELETE'
+      })
+
+      if (!res.ok) {
+        throw new Error(`Failed to delete course (${res.status})`)
+      }
+
+      update(s => ({
+        ...s,
+        courses: s.courses.filter(c => c.id !== courseId),
+        current: s.current?.id === courseId ? null : s.current,
+        loading: false
+      }))
+
+      return { success: true }
+    } catch (error) {
+      update(s => ({ ...s, error: error.message, loading: false }))
+      return { success: false, error: error.message }
+    }
+  }
+
+  return { subscribe, set, update, loadCourses, newCourse, selectCourse, saveCourse, publishCourse, deleteCourse }
 }
 
 export const courseStore = createCourseStore()
